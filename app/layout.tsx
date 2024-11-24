@@ -29,6 +29,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script> */}
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+        {/* <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script> */}
+        {/* <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script> */}
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
       </body>
     </html>
   );
