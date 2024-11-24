@@ -8,9 +8,18 @@ import "@mediapipe/hands";
 const HandDetectionV2 = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const leftHand = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<handpose.HandPose>(null);
-
+  const [leftHandPosition, setLeftHandPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [rightHandPosition, setRightHandPosition] = useState({
+    x: 0,
+    y: 0,
+  });
   const isModelLoaded = useRef(false);
+  const detectedHandData = useRef<handpose.AnnotatedPrediction[]>({ data: [] });
   console.log("this code is loading");
   const loadModel = async () => {
     if (isModelLoaded.current === true) return;
@@ -34,6 +43,18 @@ const HandDetectionV2 = () => {
   const startModel = async () => {
     await loadModel();
   };
+  function scaleCoordinates(
+    x,
+    y,
+    videoWidth,
+    videoHeight,
+    windowWidth,
+    windowHeight
+  ) {
+    const scaledX = (x / videoWidth) * windowWidth;
+    const scaledY = (y / videoHeight) * windowHeight;
+    return { scaledX, scaledY };
+  }
 
   useEffect(() => {
     async function setupWebcam() {
@@ -66,9 +87,67 @@ const HandDetectionV2 = () => {
 
   useEffect(() => {
     const detectHands = async () => {
-      if (model && videoRef.current) {
-        const predictions = await model.estimateHands(videoRef.current);
-        console.log("predictions", predictions);
+      if (model && videoRef.current && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+
+        // Flip the video horizontally
+        ctx.save();
+        ctx.scale(-1, 1); // Flip horizontally
+        ctx.translate(-canvas.width, 0); // Adjust the drawing position
+
+        // Draw the video frame onto the canvas
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+        // Restore the default canvas transform
+        ctx.restore();
+
+        const predictions = await model.estimateHands(canvas);
+        // console.log("predictions", predictions);
+        console.log(
+          "predictions",
+          predictions?.[0]?.keypoints[0]?.x,
+          detectedHandData.current.data,
+          predictions?.filter((item) => item.handedness === "Right").length > 0
+        );
+        const detectedLeftHandData = predictions?.filter(
+          (item) => item.handedness === "Left"
+        );
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        if (detectedLeftHandData.length > 0) {
+          const { scaledX, scaledY } = scaleCoordinates(
+            detectedLeftHandData?.[0]?.keypoints[0]?.x,
+            detectedLeftHandData?.[0]?.keypoints[0]?.y,
+            videoRef.current.videoWidth,
+            videoRef.current.videoHeight,
+            windowWidth,
+            windowHeight
+          );
+
+          setLeftHandPosition({
+            x: scaledX,
+            y: scaledY,
+          });
+        }
+        const detectedRightHandData = predictions?.filter(
+          (item) => item.handedness === "Right"
+        );
+        if (detectedRightHandData.length > 0) {
+          const { scaledX, scaledY } = scaleCoordinates(
+            detectedRightHandData?.[0]?.keypoints[0]?.x,
+            detectedRightHandData?.[0]?.keypoints[0]?.y,
+            videoRef.current.videoWidth,
+            videoRef.current.videoHeight,
+            windowWidth,
+            windowHeight
+          );
+          setRightHandPosition({
+            x: scaledX,
+            y: scaledY,
+          });
+        }
         drawHands(predictions);
       }
       requestAnimationFrame(detectHands);
@@ -114,6 +193,7 @@ const HandDetectionV2 = () => {
             width: "100%",
             height: "auto",
             zIndex: 1,
+            transform: "scaleX(-1)",
             background: "black",
           }}
         />
@@ -133,9 +213,25 @@ const HandDetectionV2 = () => {
       <div className="mt-[100px] border-1 border-red-500">
         <button onClick={startModel}>Start Model</button>
       </div>
-      <div className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border" />
-      <div className="absolute top-0 left-5 w-[1rem] h-[1rem] bg-black border" />
-      <div className="absolute top-0 left-10 w-[1rem] h-[1rem] bg-black border" />
+      <div
+        ref={leftHand}
+        style={{
+          translate: `${leftHandPosition.x || 0}px ${
+            leftHandPosition.y || 0
+          }px`,
+        }}
+        className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border z-10"
+      />
+      <div
+        // ref={right}
+        style={{
+          translate: `${rightHandPosition.x || 0}px ${
+            rightHandPosition.y || 0
+          }px`,
+        }}
+        className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border z-10"
+      />
+      <p>{leftHandPosition.x || "no data found"}</p>
       <div />
     </div>
   );
