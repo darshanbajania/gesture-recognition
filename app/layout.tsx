@@ -25,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
         {/* <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script> */}
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>

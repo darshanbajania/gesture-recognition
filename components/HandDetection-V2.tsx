@@ -94,7 +94,7 @@ const HandDetectionV2 = () => {
   }, [model]);
 
   return (
-    <div>
+    <div className="border-2 w-full h-full">
       <div
         style={{
           position: "relative",
@@ -133,6 +133,10 @@ const HandDetectionV2 = () => {
       <div className="mt-[100px] border-1 border-red-500">
         <button onClick={startModel}>Start Model</button>
       </div>
+      <div className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border" />
+      <div className="absolute top-0 left-5 w-[1rem] h-[1rem] bg-black border" />
+      <div className="absolute top-0 left-10 w-[1rem] h-[1rem] bg-black border" />
+      <div />
     </div>
   );
 };
