@@ -7,11 +7,11 @@ import HandDetectionV2 from "@/components/HandDetection-V2";
 
 export default function Home() {
   return (
-    <div className="h-full w-full border-5">
+    <div className="">
       <h1>Hand Gesture Detection</h1>
+      <HandDetectionV2 />
       {/* <HandDetection /> */}
       {/* <HandDetectionMediaPipe /> */}
-      <HandDetectionV2 />
     </div>
   );
 }

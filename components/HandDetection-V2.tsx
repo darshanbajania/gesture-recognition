@@ -173,12 +173,13 @@ const HandDetectionV2 = () => {
   }, [model]);
 
   return (
-    <div className="border-2 w-full h-full">
+    <div className="w-full h-full relative">
       <div
         style={{
           position: "relative",
           width: "100%",
           maxWidth: "800px",
+          height: "580px",
           margin: "auto",
         }}
       >
@@ -211,7 +212,12 @@ const HandDetectionV2 = () => {
         />
       </div>
       <div className="mt-[100px] border-1 border-red-500">
-        <button onClick={startModel}>Start Model</button>
+        <button
+          onClick={startModel}
+          className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2"
+        >
+          Start Model
+        </button>
       </div>
       <div
         ref={leftHand}
@@ -220,17 +226,24 @@ const HandDetectionV2 = () => {
             leftHandPosition.y || 0
           }px`,
         }}
-        className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border z-10"
-      />
+        className="absolute top-0 left-0 z-10"
+      >
+        <img
+          style={{ transform: "scaleX(-1)" }}
+          src="right-hand.png"
+          className="h-[200px] w-[200px] opacity-50"
+        />
+      </div>
       <div
-        // ref={right}
         style={{
           translate: `${rightHandPosition.x || 0}px ${
             rightHandPosition.y || 0
           }px`,
         }}
-        className="absolute top-0 left-0 w-[1rem] h-[1rem] bg-black border z-10"
-      />
+        className="absolute top-0 left-0 z-10"
+      >
+        <img src="right-hand.png" className="h-[200px] w-[200px] opacity-50 " />
+      </div>
       <p>{leftHandPosition.x || "no data found"}</p>
       <div />
     </div>
