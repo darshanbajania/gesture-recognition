@@ -7,7 +7,7 @@ import HandDetectionV2 from "@/components/HandDetection-V2";
 
 export default function Home() {
   return (
-    <div className="">
+    <div className="relative">
       <h1>Hand Gesture Detection</h1>
       <HandDetectionV2 />
       {/* <HandDetection /> */}

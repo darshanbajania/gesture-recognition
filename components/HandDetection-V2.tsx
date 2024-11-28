@@ -5,6 +5,7 @@ import * as handPoseDetection from "@tensorflow-models/hand-pose-detection";
 import "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 import "@mediapipe/hands";
+import GestureComponent from "./GestureComponent";
 const HandDetectionV2 = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -56,8 +57,55 @@ const HandDetectionV2 = () => {
     return { scaledX, scaledY };
   }
 
+  const detectOverlap = (targetElement, elementsToCheck) => {
+    const targetRect = targetElement.getBoundingClientRect();
+    const overlappedElements = [];
+
+    elementsToCheck.forEach((element) => {
+      const elementRect = element.getBoundingClientRect();
+      const isOverlapping =
+        targetRect.left < elementRect.right &&
+        targetRect.right > elementRect.left &&
+        targetRect.top < elementRect.bottom &&
+        targetRect.bottom > elementRect.top;
+
+      if (isOverlapping) {
+        overlappedElements.push(element);
+      }
+    });
+
+    return overlappedElements;
+  };
+
+  const detectOverlapV2 = async (
+    targetElement,
+    elementCoordinates,
+    element
+  ) => {
+    const targetRect = targetElement?.getBoundingClientRect();
+    const overlappedElements = [];
+
+    // const elementRect = element.getBoundingClientRect();
+    const isOverlapping =
+      targetRect.left <= elementCoordinates.x &&
+      targetRect.right > elementCoordinates.x &&
+      targetRect.top <= elementCoordinates.y &&
+      targetRect.bottom > elementCoordinates.y;
+
+    if (isOverlapping) {
+      overlappedElements.push(targetElement);
+      targetElement.style.outline = "5px solid blue";
+    } else {
+      targetElement.style.outline = "none";
+    }
+
+    return overlappedElements;
+  };
+
   useEffect(() => {
     async function setupWebcam() {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
@@ -104,18 +152,27 @@ const HandDetectionV2 = () => {
 
         const predictions = await model.estimateHands(canvas);
         // console.log("predictions", predictions);
-        console.log(
-          "predictions",
-          predictions?.[0]?.keypoints[0]?.x,
-          detectedHandData.current.data,
-          predictions?.filter((item) => item.handedness === "Right").length > 0
-        );
+        // console.log(
+        //   "predictions",
+        //   predictions?.[0]?.keypoints[0]?.x,
+        //   detectedHandData.current.data,
+        //   predictions?.filter((item) => item.handedness === "Right").length > 0
+        // );
         const detectedLeftHandData = predictions?.filter(
           (item) => item.handedness === "Left"
         );
 
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
+        const rightHandElement = document.getElementById("right-hand");
+        const gestureComponentElement = document.getElementById(
+          "gesture-component-1"
+        );
+        // const overlappingElements = detectOverlap(
+        //   rightHandElement,
+        //   gestureComponentElement
+        // );
+        // console.log("overlapping elements", overlappingElements.length);
         if (detectedLeftHandData.length > 0) {
           const { scaledX, scaledY } = scaleCoordinates(
             detectedLeftHandData?.[0]?.keypoints[0]?.x,
@@ -147,6 +204,17 @@ const HandDetectionV2 = () => {
             x: scaledX,
             y: scaledY,
           });
+          const overlappingElements = await detectOverlapV2(
+            gestureComponentElement,
+            { x: scaledX, y: scaledY },
+            rightHandElement
+          );
+          console.log(
+            "overlapping elements",
+            overlappingElements?.[0],
+            { x: scaledX, y: scaledY },
+            gestureComponentElement?.getBoundingClientRect()
+          );
         }
         drawHands(predictions);
       }
@@ -173,7 +241,7 @@ const HandDetectionV2 = () => {
   }, [model]);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full ">
       <div
         style={{
           position: "relative",
@@ -220,6 +288,7 @@ const HandDetectionV2 = () => {
         </button>
       </div>
       <div
+        id={"left-hand"}
         ref={leftHand}
         style={{
           translate: `${leftHandPosition.x || 0}px ${
@@ -231,10 +300,11 @@ const HandDetectionV2 = () => {
         <img
           style={{ transform: "scaleX(-1)" }}
           src="right-hand.png"
-          className="h-[200px] w-[200px] opacity-50"
+          className="h-[350px] w-[350px] opacity-50"
         />
       </div>
       <div
+        id="right-hand"
         style={{
           translate: `${rightHandPosition.x || 0}px ${
             rightHandPosition.y || 0
@@ -242,10 +312,18 @@ const HandDetectionV2 = () => {
         }}
         className="absolute top-0 left-0 z-10"
       >
-        <img src="right-hand.png" className="h-[200px] w-[200px] opacity-50 " />
+        <div className="h-[5px] w-[5px] bg-black" />
+        {/* <img src="right-hand.png" className="h-[350px] w-[350px] opacity-50 " /> */}
       </div>
       <p>{leftHandPosition.x || "no data found"}</p>
       <div />
+      <div className="flex justify-center">
+        <GestureComponent>
+          <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2">
+            Click Me
+          </button>
+        </GestureComponent>
+      </div>
     </div>
   );
 };
