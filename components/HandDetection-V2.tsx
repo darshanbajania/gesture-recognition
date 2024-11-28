@@ -101,6 +101,26 @@ const HandDetectionV2 = () => {
 
     return overlappedElements;
   };
+  const detectOverlapV3 = async (elementsToCheck = [], elementCoordinates) => {
+    const overlappedElements = [];
+
+    for (const element of elementsToCheck) {
+      const elementRect = element.getBoundingClientRect();
+      const isOverlapping =
+        elementRect.left <= elementCoordinates.x &&
+        elementRect.right > elementCoordinates.x &&
+        elementRect.top <= elementCoordinates.y &&
+        elementRect.bottom > elementCoordinates.y;
+
+      if (isOverlapping) {
+        overlappedElements.push(element);
+        element.style.outline = "5px solid blue";
+      } else {
+        element.style.outline = "none";
+      }
+    }
+    return overlappedElements;
+  };
 
   useEffect(() => {
     async function setupWebcam() {
@@ -168,6 +188,12 @@ const HandDetectionV2 = () => {
         const gestureComponentElement = document.getElementById(
           "gesture-component-1"
         );
+        const gestureComponentElements =
+          document.getElementsByClassName("gesture-component");
+        // console.log(
+        //   "gesture component element",
+        //   gestureComponentElements.length
+        // );
         // const overlappingElements = detectOverlap(
         //   rightHandElement,
         //   gestureComponentElement
@@ -204,17 +230,16 @@ const HandDetectionV2 = () => {
             x: scaledX,
             y: scaledY,
           });
-          const overlappingElements = await detectOverlapV2(
-            gestureComponentElement,
-            { x: scaledX, y: scaledY },
-            rightHandElement
+          const overlappingElements = await detectOverlapV3(
+            gestureComponentElements,
+            { x: scaledX, y: scaledY }
           );
-          console.log(
-            "overlapping elements",
-            overlappingElements?.[0],
-            { x: scaledX, y: scaledY },
-            gestureComponentElement?.getBoundingClientRect()
-          );
+          // console.log(
+          //   "overlapping elements",
+          //   overlappingElements?.[0],
+          //   { x: scaledX, y: scaledY },
+          //   gestureComponentElements?.[0]?.getBoundingClientRect()
+          // );
         }
         drawHands(predictions);
       }
@@ -317,8 +342,18 @@ const HandDetectionV2 = () => {
       </div>
       <p>{leftHandPosition.x || "no data found"}</p>
       <div />
-      <div className="flex justify-center">
-        <GestureComponent>
+      <div className="flex gap-5 justify-center">
+        <GestureComponent itemKey={1}>
+          <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2">
+            Click Me
+          </button>
+        </GestureComponent>
+        <GestureComponent itemKey={1}>
+          <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2">
+            Click Me
+          </button>
+        </GestureComponent>
+        <GestureComponent itemKey={1}>
           <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2">
             Click Me
           </button>
