@@ -12,10 +12,12 @@ const HandDetectionV2 = () => {
   const leftHand = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<handpose.HandPose>(null);
   const [leftHandPosition, setLeftHandPosition] = useState({
+    type: "pan",
     x: 0,
     y: 0,
   });
   const [rightHandPosition, setRightHandPosition] = useState({
+    type: "pan",
     x: 0,
     y: 0,
   });
@@ -121,6 +123,30 @@ const HandDetectionV2 = () => {
     }
     return overlappedElements;
   };
+  const isPointer = (handData) => {
+    let fingerTipTotal = 0;
+    let indexFingerTipPosition = 0;
+    handData?.[0]?.keypoints.map((item) => {
+      if (
+        ["middle_finger_tip", "ring_finger_tip", "pinky_finger_tip"].includes(
+          item.name
+        )
+      ) {
+        fingerTipTotal += item.y;
+      } else if (["index_finger_tip"].includes(item.name)) {
+        indexFingerTipPosition = item.y;
+      }
+    });
+    const distanceBetweenIndexFingerAndOtherFingers =
+      fingerTipTotal / 3 - indexFingerTipPosition;
+
+    // console.log(
+    //   distanceBetweenIndexFingerAndOtherFingers > 10 ? true : false,
+    //   fingerTipTotal,
+    //   indexFingerTipPosition
+    // );
+    return distanceBetweenIndexFingerAndOtherFingers > 10 ? true : false;
+  };
 
   useEffect(() => {
     async function setupWebcam() {
@@ -210,6 +236,7 @@ const HandDetectionV2 = () => {
           );
 
           setLeftHandPosition({
+            type: isPointer(detectedLeftHandData) ? "pointer" : "pan",
             x: scaledX,
             y: scaledY,
           });
@@ -226,7 +253,9 @@ const HandDetectionV2 = () => {
             windowWidth,
             windowHeight
           );
+
           setRightHandPosition({
+            type: isPointer(detectedRightHandData) ? "pointer" : "pan",
             x: scaledX,
             y: scaledY,
           });
@@ -322,11 +351,19 @@ const HandDetectionV2 = () => {
         }}
         className="absolute top-0 left-0 z-10"
       >
-        <img
-          style={{ transform: "scaleX(-1)" }}
-          src="right-hand.png"
-          className="h-[350px] w-[350px] opacity-50"
-        />
+        {leftHandPosition.type === "pointer" ? (
+          <img
+            style={{ transform: "scaleX(-1)" }}
+            src="pointer-hand.png"
+            className="h-[350px] w-[350px] opacity-50"
+          />
+        ) : (
+          <img
+            style={{ transform: "scaleX(-1)" }}
+            src="right-hand.png"
+            className="h-[350px] w-[350px] opacity-50"
+          />
+        )}
       </div>
       <div
         id="right-hand"
@@ -337,7 +374,23 @@ const HandDetectionV2 = () => {
         }}
         className="absolute top-0 left-0 z-10"
       >
-        <div className="h-[5px] w-[5px] bg-black" />
+        {/* {rightHandPosition.type === "pointer" ? (
+          <div className="h-[5px] w-[5px] bg-[#ff0000]" />
+        ) : (
+          <div className="h-[5px] w-[5px] bg-black" />
+        )} */}
+        {rightHandPosition.type === "pointer" ? (
+          <img
+            src="pointer-hand.png"
+            className="h-[350px] w-[350px] opacity-50 "
+          />
+        ) : (
+          <img
+            src="right-hand.png"
+            className="h-[350px] w-[350px] opacity-50 "
+          />
+        )}
+
         {/* <img src="right-hand.png" className="h-[350px] w-[350px] opacity-50 " /> */}
       </div>
       <p>{leftHandPosition.x || "no data found"}</p>
