@@ -126,17 +126,22 @@ const HandDetectionV2 = () => {
   const isPointer = (handData) => {
     let fingerTipTotal = 0;
     let indexFingerTipPosition = 0;
-    handData?.[0]?.keypoints.map((item) => {
-      if (
-        ["middle_finger_tip", "ring_finger_tip", "pinky_finger_tip"].includes(
-          item.name
-        )
-      ) {
-        fingerTipTotal += item.y;
-      } else if (["index_finger_tip"].includes(item.name)) {
-        indexFingerTipPosition = item.y;
-      }
-    });
+    // handData?.[0]?.keypoints.map((item) => {
+    //   if (
+    //     ["middle_finger_tip", "ring_finger_tip", "pinky_finger_tip"].includes(
+    //       item.name
+    //     )
+    //   ) {
+    //     fingerTipTotal += item.y;
+    //   } else if (["index_finger_tip"].includes(item.name)) {
+    //     indexFingerTipPosition = item.y;
+    //   }
+    // });
+    fingerTipTotal =
+      handData.middle_finger_tip.y +
+      handData.ring_finger_tip.y +
+      handData.pinky_finger_tip.y;
+    indexFingerTipPosition = handData.index_finger_tip.y;
     const distanceBetweenIndexFingerAndOtherFingers =
       fingerTipTotal / 3 - indexFingerTipPosition;
 
@@ -234,9 +239,13 @@ const HandDetectionV2 = () => {
             windowWidth,
             windowHeight
           );
-
+          const leftHandCoordinatesData =
+            detectedLeftHandData[0]?.keypoints?.reduce((obj, point) => {
+              obj[point.name] = { x: point.x, y: point.y };
+              return obj;
+            }, {});
           setLeftHandPosition({
-            type: isPointer(detectedLeftHandData) ? "pointer" : "pan",
+            type: isPointer(leftHandCoordinatesData) ? "pointer" : "pan",
             x: scaledX,
             y: scaledY,
           });
@@ -253,9 +262,15 @@ const HandDetectionV2 = () => {
             windowWidth,
             windowHeight
           );
-
+          // Convert array to object
+          const rightHandCoordinatesData =
+            detectedRightHandData[0]?.keypoints?.reduce((obj, point) => {
+              obj[point.name] = { x: point.x, y: point.y };
+              return obj;
+            }, {});
+          console.log(rightHandCoordinatesData);
           setRightHandPosition({
-            type: isPointer(detectedRightHandData) ? "pointer" : "pan",
+            type: isPointer(rightHandCoordinatesData) ? "pointer" : "pan",
             x: scaledX,
             y: scaledY,
           });
