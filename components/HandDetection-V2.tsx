@@ -141,6 +141,7 @@ const HandDetectionV2 = () => {
       handData.middle_finger_tip.y +
       handData.ring_finger_tip.y +
       handData.pinky_finger_tip.y;
+
     indexFingerTipPosition = handData.index_finger_tip.y;
     const distanceBetweenIndexFingerAndOtherFingers =
       fingerTipTotal / 3 - indexFingerTipPosition;
@@ -151,6 +152,18 @@ const HandDetectionV2 = () => {
     //   indexFingerTipPosition
     // );
     return distanceBetweenIndexFingerAndOtherFingers > 10 ? true : false;
+  };
+  const isPinchedHand = (handData) => {
+    const xDistanceBetweenThumbAndIndexFinger = Math.abs(
+      handData.index_finger_tip.x - handData.thumb_tip.x
+    );
+    const yDistanceBetweenThumbAndIndexFinger = Math.abs(
+      handData.index_finger_tip.y - handData.thumb_tip.y
+    );
+    return xDistanceBetweenThumbAndIndexFinger < 30 &&
+      yDistanceBetweenThumbAndIndexFinger < 30
+      ? true
+      : false;
   };
 
   useEffect(() => {
@@ -245,7 +258,11 @@ const HandDetectionV2 = () => {
               return obj;
             }, {});
           setLeftHandPosition({
-            type: isPointer(leftHandCoordinatesData) ? "pointer" : "pan",
+            type: isPointer(leftHandCoordinatesData)
+              ? "pointer"
+              : isPinchedHand(leftHandCoordinatesData)
+              ? "pinch"
+              : "pan",
             x: scaledX,
             y: scaledY,
           });
@@ -270,7 +287,11 @@ const HandDetectionV2 = () => {
             }, {});
           console.log(rightHandCoordinatesData);
           setRightHandPosition({
-            type: isPointer(rightHandCoordinatesData) ? "pointer" : "pan",
+            type: isPointer(rightHandCoordinatesData)
+              ? "pointer"
+              : isPinchedHand(rightHandCoordinatesData)
+              ? "pinch"
+              : "pan",
             x: scaledX,
             y: scaledY,
           });
@@ -372,6 +393,12 @@ const HandDetectionV2 = () => {
             src="pointer-hand.png"
             className="h-[350px] w-[350px] opacity-50"
           />
+        ) : leftHandPosition.type === "pinch" ? (
+          <img
+            style={{ transform: "scaleX(-1)" }}
+            src="pinch-hand.png"
+            className="h-[350px] w-[350px] opacity-50 "
+          />
         ) : (
           <img
             style={{ transform: "scaleX(-1)" }}
@@ -397,6 +424,11 @@ const HandDetectionV2 = () => {
         {rightHandPosition.type === "pointer" ? (
           <img
             src="pointer-hand.png"
+            className="h-[350px] w-[350px] opacity-50 "
+          />
+        ) : rightHandPosition.type === "pinch" ? (
+          <img
+            src="pinch-hand.png"
             className="h-[350px] w-[350px] opacity-50 "
           />
         ) : (
